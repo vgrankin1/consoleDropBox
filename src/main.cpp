@@ -10,7 +10,7 @@
 #include "curl/curl.h"
 
 
-#pragma comment(lib, "../libcurl.dll.a")
+#pragma comment(lib, "libcurl.dll.a")
 
 int verbose = true;
 

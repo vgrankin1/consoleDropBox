@@ -15,16 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="../download.cpp">
+    <ClCompile Include="..\src\invoke.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="../invoke.cpp">
+    <ClCompile Include="..\src\download.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="../main.cpp">
+    <ClCompile Include="..\src\main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="../uppload.cpp">
+    <ClCompile Include="..\src\uppload.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
