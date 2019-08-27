@@ -10,7 +10,7 @@
 #include "curl/curl.h"
 
 
-#pragma comment(lib, "libcurl.dll.a")
+#pragma comment(lib, "../libcurl.dll.a")
 
 int verbose = true;
 
@@ -45,6 +45,8 @@ int main(int argc, char* argv[])
 	std::string access_token = "";
 	std::string file_name_url = "/test5.txt";
 	bool putFlag = false;
+	std::cout << curl_version() << "\n";
+
 	if (argc < 4)
 	{
 		printHelp();
@@ -80,7 +82,7 @@ int main(int argc, char* argv[])
 	CURLcode res;
 	FILE* fi;
  
-	std::cout << curl_version() << "\n";
+	
 
 	if (putFlag)
 	{
