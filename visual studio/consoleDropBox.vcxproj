@@ -156,10 +156,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="download.cpp" />
-    <ClCompile Include="invoke.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="uppload.cpp" />
+    <ClCompile Include="../download.cpp" />
+    <ClCompile Include="../invoke.cpp" />
+    <ClCompile Include="../main.cpp" />
+    <ClCompile Include="../uppload.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

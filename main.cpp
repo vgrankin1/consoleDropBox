@@ -5,6 +5,7 @@
 #include <iostream>
 #include <ctime>
 #include <string>
+//#include <>
 
 #include "curl/curl.h"
 
@@ -41,7 +42,7 @@ CURLcode download(FILE* fi, const std::string& access_token, const std::string& 
 int main(int argc, char* argv[])
 {
 	char* src_path, *dst_path;
-	std::string access_token = ;
+	std::string access_token = "";
 	std::string file_name_url = "/test5.txt";
 	bool putFlag = false;
 	if (argc < 4)

@@ -1,0 +1,10 @@
+This application bundles the following third-party software in accordance with the following licenses:
+
+-------------------------------------------------------------------------
+
+Package: RapidJSON
+Authors: THL A29 Limited, a Tencent company, and Milo Yip
+Source: https://github.com/Tencent/rapidjson
+License: MIT License and BSD License
+
+-------------------------------------------------------------------------
