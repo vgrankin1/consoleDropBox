@@ -17,7 +17,7 @@ static size_t _upWriteFunc(char* data, size_t size, size_t nmemb, std::string* b
 	return result;
 }
 
-CURLcode invokeUP(const char* endpoint, const curl_slist* headers, std::string &retBuffer, char *errorbuf, const char *buffer, const size_t size)
+CURLcode invokeUP(const char* endpoint, const curl_slist* headers, std::string &retBuffer, char *errorbuf, const char *buffer, const size_t size, const bool verbose)
 {
 	CURL* curl;
 	CURLcode res;
@@ -27,7 +27,7 @@ CURLcode invokeUP(const char* endpoint, const curl_slist* headers, std::string &
 		return CURLE_FAILED_INIT;
 	}
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorbuf);
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, long(verbose));
 
 	res = curl_easy_setopt(curl, CURLOPT_CAINFO, "cacert.pem");
 	if (res != CURLE_OK)
@@ -59,7 +59,7 @@ static size_t _downWriteFunc(char* data, size_t size, size_t nmemb, FILE *fi)
 	return sz;
 }
 
-CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* errorbuf, FILE *fi)
+CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* errorbuf, FILE *fi, const bool verbose)
 {
 	CURL* curl;
 	CURLcode res;
@@ -69,7 +69,7 @@ CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* error
 		return CURLE_FAILED_INIT;
 	}
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorbuf);
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, long(verbose));
 
 	res = curl_easy_setopt(curl, CURLOPT_CAINFO, "cacert.pem");
 	if (res != CURLE_OK)

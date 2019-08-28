@@ -7,7 +7,7 @@
 #include "rapidjson/document.h"
 
 
-CURLcode invokeUP(const char* endpoint, const curl_slist* headers, std::string& retBuffer, char* errorbuf, const char* buffer, const size_t size);
+CURLcode invokeUP(const char* endpoint, const curl_slist* headers, std::string& retBuffer, char* errorbuf, const char* buffer, const size_t size, const bool verbose);
 
 CURLcode upload(FILE *fi, const std::string &access_token, const std::string& file_name_url, const bool verbose)
 {
@@ -39,7 +39,7 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 	headers = curl_slist_append(headers, "Dropbox-API-Arg: {\"close\": false}");
 	headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
 
-	res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/start", headers, curlBuffer, curlErrorBuffer, buffer.get(), readed_bytes);
+	res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/start", headers, curlBuffer, curlErrorBuffer, buffer.get(), readed_bytes, verbose);
 	curl_slist_free_all(headers);
 	if (res != CURLE_OK)
 	{
@@ -76,7 +76,7 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 			"\",\"offset\": " + std::to_string(_doffset) + "},\"close\":false}").c_str());
 		headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
 
-		res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/append_v2", headers, curlBuffer, curlErrorBuffer, buffer.get(), readed_bytes);
+		res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/append_v2", headers, curlBuffer, curlErrorBuffer, buffer.get(), readed_bytes, verbose);
 		curl_slist_free_all(headers);
 		if (res != CURLE_OK)
 		{
@@ -107,7 +107,7 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 		"\"mode\": \"add\",\"autorename\": true,\"mute\": false,\"strict_conflict\": false}}").c_str());
 	headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
 
-	res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/finish", headers, curlBuffer, curlErrorBuffer, buffer.get(), readed_bytes);
+	res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/finish", headers, curlBuffer, curlErrorBuffer, buffer.get(), readed_bytes, verbose);
 	curl_slist_free_all(headers);
 	if (res != CURLE_OK)
 	{
