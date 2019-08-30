@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
 			if (!promptYesNo())
 				return 0;
 		}
-		if ((fi = fopen(dst_path, "w+b")) == 0)
+		if ((fi = fopen(dst_path, "wb")) == 0)
 		{
 			std::cerr << strerror(errno) << " : " << dst_path << std::endl;
 			return 1;

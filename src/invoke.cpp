@@ -1,4 +1,6 @@
 
+#include "main.hpp"
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -51,17 +53,61 @@ CURLcode invokeUP(const char* endpoint, const curl_slist* headers, std::string &
 }
 
 
-static size_t _downWriteFunc(char* data, size_t size, size_t nmemb, FILE *fi)
+struct buffer_hash_t
+{
+	FILE* f;
+	std::vector<char> buf;
+	sha256_DB_hash_t* phash;
+	//size_t wp;
+
+	const unsigned int DB_chunk_size = 4 * 1024 * 1024;
+	buffer_hash_t()
+		: f()
+	{}
+	void append(const char* data, const size_t n)
+	{
+		size_t size = buf.size();
+		if (buf.capacity() <= size + n)
+			buf.reserve(size + DB_chunk_size);
+		buf.resize(size + n);
+		memcpy(buf.data() + size, data, n);
+
+		if (buf.size() >= DB_chunk_size)
+		{
+			phash->push((unsigned char*)buf.data(), DB_chunk_size);
+			memmove(buf.data(), buf.data() + DB_chunk_size, buf.size() - DB_chunk_size);
+			buf.resize(buf.size() - DB_chunk_size);
+		}
+	}
+	void release()
+	{
+		phash->push((unsigned char*)buf.data(), buf.size());
+		buf.resize(0);
+	}
+};
+static size_t _downWriteFunc(char* data, size_t size, size_t nmemb, buffer_hash_t *hb)
 {
 	size_t sz = size * nmemb;
-	fwrite(data, 1, sz, fi);
+	hb->append(data, sz);
+	fwrite(data, 1, sz, hb->f);
 	return sz;
 }
 
-CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* errorbuf, std::string& dropbox_api_result, FILE *fi, const bool verbose)
+CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* errorbuf, std::string& dropbox_api_result, FILE *fi, sha256_DB_hash_t* ptrhash, const bool verbose)
 {
 	CURL* curl;
 	CURLcode res;
+
+	buffer_hash_t buffer_hash;
+	buffer_hash.f = fi;
+	buffer_hash.phash = ptrhash;
+
+	/*buffer_hash.append(" hello1", 7);
+	buffer_hash.append(" hello2", 7);
+	buffer_hash.append(" hello3", 7);
+	buffer_hash.append(" hello4", 7);
+	buffer_hash.append(" hello5", 7);
+	return CURLE_OK;*/
 	if ((curl = curl_easy_init()) == 0)
 	{
 		std::cerr << "Failed to initialize curl\n";
@@ -80,7 +126,7 @@ CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* error
 	curl_easy_setopt(curl, CURLOPT_URL, endpoint);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(curl, CURLOPT_POST, 1L);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, fi);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer_hash);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _downWriteFunc);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, 0);
 	curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, _upWriteFunc);//get a dropbox_api_result
@@ -88,6 +134,9 @@ CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* error
 
 	res = curl_easy_perform(curl);
 	curl_easy_cleanup(curl);
+
+	fflush(fi);
+	buffer_hash.release();//Called for last block
 
 	std::string dbstring = "dropbox-api-result:";
 	size_t dbpos;

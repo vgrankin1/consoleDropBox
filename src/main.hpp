@@ -8,12 +8,7 @@
 #include <curl/curl.h>
 #include <openssl/sha.h>
 
-CURLcode invokeUP(const char* endpoint, const curl_slist* headers, std::string& retBuffer, char* errorbuf, const char* buffer, const size_t size, const bool verbose);
 
-CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* errorbuf, std::string& dropbox_api_result, FILE* fi, const bool verbose);
-
-CURLcode upload(FILE* fi, const std::string& access_token, const std::string& file_name_url, const bool verbose);
-CURLcode download(FILE* fi, const std::string& access_token, const std::string& file_name_url, const bool verbose);
 
 enum tool_action_t
 {
@@ -41,3 +36,11 @@ public:
 	size_t size() const;
 };
 
+
+
+CURLcode invokeUP(const char* endpoint, const curl_slist* headers, std::string& retBuffer, char* errorbuf, const char* buffer, const size_t size, const bool verbose);
+
+CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* errorbuf, std::string& dropbox_api_result, FILE* fi, sha256_DB_hash_t* ptrhash, const bool verbose);
+
+CURLcode upload(FILE* fi, const std::string& access_token, const std::string& file_name_url, const bool verbose);
+CURLcode download(FILE* fi, const std::string& access_token, const std::string& file_name_url, const bool verbose);
