@@ -3,11 +3,12 @@
 #include <string>
 #include <memory>
 
-#include "curl/curl.h"
-#include "rapidjson/document.h"
+#include <curl/curl.h>
+#include <rapidjson/document.h>
+
+#include "main.hpp"
 
 
-CURLcode invokeUP(const char* endpoint, const curl_slist* headers, std::string& retBuffer, char* errorbuf, const char* buffer, const size_t size, const bool verbose);
 
 CURLcode upload(FILE *fi, const std::string &access_token, const std::string& file_name_url, const bool verbose)
 {
@@ -18,13 +19,14 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 	rapidjson::Document json_d;
 	CURLcode res;
 
-	fpos_t fi_size;
+	sha256_DB_hash_t hash;
+
 	curl_off_t buffer_size = 128 * 1024 * 1024;
 	std::unique_ptr<char> buffer(new char[buffer_size]);
-	size_t readed_bytes;
+	size_t fi_size, readed_bytes;
 
 	fseek(fi, 0, SEEK_END);
-	fgetpos(fi, &fi_size);
+	fgetpos(fi, (fpos_t*)&fi_size);
 	fseek(fi, 0, SEEK_SET);
 
 	
@@ -33,6 +35,7 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 		std::cout << "File is empty\n";
 		return CURLE_OK;
 	}
+	hash.push((unsigned char*)buffer.get(), readed_bytes);
 
 	struct curl_slist* headers = NULL;
 	headers = curl_slist_append(headers, (std::string("Authorization: Bearer ") + access_token).c_str());
@@ -70,6 +73,8 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 	{
 		if ((readed_bytes = fread(buffer.get(), 1, buffer_size, fi)) == 0)
 			break;
+		hash.push((unsigned char*)buffer.get(), readed_bytes);
+
 		headers = NULL;
 		headers = curl_slist_append(headers, (std::string("Authorization: Bearer ") + access_token).c_str());
 		headers = curl_slist_append(headers, (std::string("Dropbox-API-Arg: {\"cursor\": {\"session_id\":\"") + session_id +
@@ -99,6 +104,8 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 	
 
 	readed_bytes = fread(buffer.get(), 1, buffer_size, fi);
+	if(readed_bytes != 0)
+		hash.push((unsigned char*)buffer.get(), readed_bytes);
 
 	headers = NULL;
 	headers = curl_slist_append(headers, (std::string("Authorization: Bearer ") + access_token).c_str());
@@ -131,7 +138,16 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 	else
 	{
 		std::string sid = json_d["id"].GetString();
-		std::string hash = json_d["content_hash"].GetString();
+		std::string content_hash = json_d["content_hash"].GetString();
+		std::string local_hash = hash.get();
+		
+		if (local_hash.compare(content_hash) == 0)
+		{
+			if (verbose)
+				std::cout << "Local and remote hashes are identical\n";
+		}
+		else
+			std::cout << "[Warning!!!]\nLocal and remote hashes are not identical!!!\n";
 	}
 	curlBuffer.clear();
 	return res;

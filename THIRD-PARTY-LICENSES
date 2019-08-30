@@ -4,7 +4,21 @@ This application bundles the following third-party software in accordance with t
 
 Package: RapidJSON
 Authors: THL A29 Limited, a Tencent company, and Milo Yip
-Source: https://github.com/Tencent/rapidjson
+Source:  https://github.com/Tencent/rapidjson
 License: MIT License and BSD License
+
+-------------------------------------------------------------------------
+
+Package: libcurl (curl 7.65.3)
+Authors: Daniel Stenberg, daniel@haxx.se
+Source:  curl.haxx.se
+License: curl License (MIT, https://curl.haxx.se/docs/copyright.html)
+
+-------------------------------------------------------------------------
+
+Package: OpenSSL
+Authors: Daniel Stenberg, daniel@haxx.se
+Source:  https://www.openssl.org/source/
+License: Apache License v2 
 
 -------------------------------------------------------------------------

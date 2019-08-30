@@ -1,16 +1,19 @@
 ﻿
-#define _CRT_SECURE_NO_WARNINGS
 
+#include "main.hpp"
 
 #include <iostream>
+
 #include <ctime>
 #include <string>
 #include <fstream>
 
-#include "curl/curl.h"
+#include <curl/curl.h>
 
 
+#pragma comment(lib, "libcrypto-1_1-x64.dll.lib")
 #pragma comment(lib, "libcurl.dll.a")
+
 
 int verbose = false;
 
@@ -39,20 +42,15 @@ bool promptYesNo()
 	}
 }
 
-enum tool_action_t
-{
-	NO_ACTION=0, PUT_ACTION, GET_ACTION
-};
 
 bool testToken(std::string &token)
 {
 	return token.size() == 64;
 }
 
-CURLcode upload(FILE* fi, const std::string& access_token, const std::string& file_name_url, const bool verbose);
-CURLcode download(FILE* fi, const std::string& access_token, const std::string& file_name_url, const bool verbose);
 
-//testtool login password put/get src_path dst_path
+
+
 int main(int argc, char* argv[])
 {
 	CURLcode res;
@@ -171,7 +169,7 @@ int main(int argc, char* argv[])
 			if (!promptYesNo())
 				return 0;
 		}
-		if ((fi = fopen(dst_path, "wb")) == 0)
+		if ((fi = fopen(dst_path, "w+b")) == 0)
 		{
 			std::cerr << strerror(errno) << " : " << dst_path << std::endl;
 			return 1;
