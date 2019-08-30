@@ -164,6 +164,7 @@
     <ClCompile Include="..\src\download.cpp" />
     <ClCompile Include="..\src\hash.cpp" />
     <ClCompile Include="..\src\invoke.cpp" />
+    <ClCompile Include="..\src\list.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\uppload.cpp" />
   </ItemGroup>

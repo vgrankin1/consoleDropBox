@@ -9,8 +9,6 @@
 #include <rapidjson/document.h>
 
 
-
-
 CURLcode download(FILE* fi, const std::string& access_token, const std::string& file_name_url, const bool verbose)
 {
 	char curlErrorBuffer[CURL_ERROR_SIZE];
@@ -46,8 +44,6 @@ CURLcode download(FILE* fi, const std::string& access_token, const std::string& 
 	}
 	else
 	{
-		
-		
 		std::string sid = json_d["id"].GetString();
 		std::string content_hash = json_d["content_hash"].GetString();
 		std::string local_hash = hash.get();

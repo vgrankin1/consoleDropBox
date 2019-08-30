@@ -49,7 +49,7 @@ bool testToken(std::string &token)
 }
 
 
-
+CURLcode list(const std::string& access_token, const std::string& remote_url, const bool verbose);
 
 int main(int argc, char* argv[])
 {
@@ -129,6 +129,17 @@ int main(int argc, char* argv[])
 			tool_action = GET_ACTION;
 			i += 2;
 		}
+		else if (strcmp(argv[i], "ls") == 0)
+		{
+			if (i + 1 >= argc)
+			{
+				std::cerr << "Wrong arguments for list command\n";
+				return 1;
+			}
+			src_path = argv[i + 1];
+			tool_action = LIST_ACTION;
+			i += 1;
+		}
 		else
 		{
 			printHelp();
@@ -148,6 +159,7 @@ int main(int argc, char* argv[])
 	if (verbose)
 		std::cout << curl_version() << "\n";
 	
+	curl_global_init(CURL_GLOBAL_ALL);
 	switch(tool_action)
 	{
 	case PUT_ACTION:
@@ -156,9 +168,7 @@ int main(int argc, char* argv[])
 			std::cerr << strerror(errno) << " : " << src_path << std::endl;
 			return 1;
 		}
-		curl_global_init(CURL_GLOBAL_ALL);
 		res = upload(fi, access_token, dst_path, verbose);
-		curl_global_cleanup();
 		fclose(fi);
 		break;
 	case GET_ACTION:
@@ -174,17 +184,18 @@ int main(int argc, char* argv[])
 			std::cerr << strerror(errno) << " : " << dst_path << std::endl;
 			return 1;
 		}
-		curl_global_init(CURL_GLOBAL_ALL);
 		res = download(fi, access_token, src_path, verbose);
-		curl_global_cleanup();
 		fclose(fi);
+		break;
+	case LIST_ACTION:
+		res = list(access_token, src_path, verbose);
 		break;
 	default:
 		std::cout << "No action\n";
 		printHelp();
-		return 0;
+		break;
 	}
-
+	curl_global_cleanup();
 	return res;
 }
 

@@ -6,7 +6,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>get /song.mp3 D:\3.mp3 -v -a 6O3zplm_fLQAAAAAAAABrviaJoIVehDyj39ny_l5GQaW49JyHSiZ_GUjd2l5PTol</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-k 1.key ls "/folder1"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

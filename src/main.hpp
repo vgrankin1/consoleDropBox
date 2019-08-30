@@ -12,7 +12,7 @@
 
 enum tool_action_t
 {
-	NO_ACTION = 0, PUT_ACTION, GET_ACTION
+	NO_ACTION = 0, PUT_ACTION, GET_ACTION, LIST_ACTION
 };
 
 struct sha256_digest_t
@@ -23,7 +23,7 @@ struct sha256_digest_t
 class sha256_DB_hash_t
 {
 	//DropBox hash chunksize
-	const unsigned int DB_chunk_size = 4 * 1024 * 1024;
+	
 	std::vector< sha256_digest_t > hash_chunks;
 
 public:
@@ -34,6 +34,8 @@ public:
 	std::string get();
 	std::string operator[](const size_t index) const;
 	size_t size() const;
+
+	const unsigned int DB_chunk_size = 4 * 1024 * 1024;
 };
 
 

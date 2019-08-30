@@ -60,13 +60,14 @@ struct buffer_hash_t
 	sha256_DB_hash_t* phash;
 	//size_t wp;
 
-	const unsigned int DB_chunk_size = 4 * 1024 * 1024;
-	buffer_hash_t()
-		: f()
+
+	buffer_hash_t(FILE *fi, sha256_DB_hash_t *ptrhash)
+		: f(fi), phash(ptrhash)
 	{}
 	void append(const char* data, const size_t n)
 	{
 		size_t size = buf.size();
+		unsigned int DB_chunk_size = phash->DB_chunk_size;
 		if (buf.capacity() <= size + n)
 			buf.reserve(size + DB_chunk_size);
 		buf.resize(size + n);
@@ -79,7 +80,7 @@ struct buffer_hash_t
 			buf.resize(buf.size() - DB_chunk_size);
 		}
 	}
-	void release()
+	void release()//last not pushed block, size that is less DB_chunk_size
 	{
 		phash->push((unsigned char*)buf.data(), buf.size());
 		buf.resize(0);
@@ -98,16 +99,8 @@ CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* error
 	CURL* curl;
 	CURLcode res;
 
-	buffer_hash_t buffer_hash;
-	buffer_hash.f = fi;
-	buffer_hash.phash = ptrhash;
+	buffer_hash_t buffer_hash(fi, ptrhash);
 
-	/*buffer_hash.append(" hello1", 7);
-	buffer_hash.append(" hello2", 7);
-	buffer_hash.append(" hello3", 7);
-	buffer_hash.append(" hello4", 7);
-	buffer_hash.append(" hello5", 7);
-	return CURLE_OK;*/
 	if ((curl = curl_easy_init()) == 0)
 	{
 		std::cerr << "Failed to initialize curl\n";
@@ -150,3 +143,34 @@ CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* error
 	return res;
 }
 
+
+CURLcode invokeList(const char* endpoint, const curl_slist* headers, const std::string &data, std::string& retBuffer, char* errorbuf,  const bool verbose)
+{
+	CURL* curl;
+	CURLcode res;
+	if ((curl = curl_easy_init()) == 0)
+	{
+		std::cerr << "Failed to initialize curl\n";
+		return CURLE_FAILED_INIT;
+	}
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorbuf);
+	curl_easy_setopt(curl, CURLOPT_VERBOSE, long(verbose));
+
+	res = curl_easy_setopt(curl, CURLOPT_CAINFO, "cacert.pem");
+	if (res != CURLE_OK)
+	{
+		std::cerr << "SSL certificate verification problem: " << errorbuf << "\n";
+		std::cout << "Does continued without verification?\nY/n\n";
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
+	}
+	curl_easy_setopt(curl, CURLOPT_URL, endpoint);
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(curl, CURLOPT_POST, 1L);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &retBuffer);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _upWriteFunc);
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE_LARGE, data.size());
+	res = curl_easy_perform(curl);
+	curl_easy_cleanup(curl);
+	return res;
+}
