@@ -22,6 +22,9 @@ void printHelp()
 	std::cout << "Wrong arguments! Usage:\n";
 	std::cout << "tool.exe put src_path dst_path" << "\t\twhere src_path is a local file" << std::endl;
 	std::cout << "tool.exe get src_path dst_path" << "\t\twhere src_path is a remote file" << std::endl;
+	std::cout << "tool.exe ls url" << "\t\t where url is required (tool.exe ls \"\")" << std::endl;
+	std::cout << "tool.exe rm url1 url2 ..." << "\t\t where url is required" << std::endl;
+	std::cout << "tool.exe mkdir url1 url2 ..." << "\t\t where url is required" << std::endl;
 	std::cout << "\nPossible arguments:\n";
 	std::cout << "  -h \t this message" << std::endl;
 	std::cout << "  -v \t verbose" << std::endl;
@@ -49,14 +52,13 @@ bool testToken(std::string &token)
 }
 
 
-CURLcode list(const std::string& access_token, const std::string& remote_url, const bool verbose);
+
 
 int main(int argc, char* argv[])
 {
-	CURLcode res;
+	CURLcode res = CURLE_OK;
 	FILE* fi;
-	const char* src_path, *dst_path;
-	src_path = dst_path = "";
+	std::string src_path, dst_path;
 	std::string access_token = "";
 
 	tool_action_t tool_action = NO_ACTION;
@@ -140,13 +142,48 @@ int main(int argc, char* argv[])
 			tool_action = LIST_ACTION;
 			i += 1;
 		}
+		else if (strcmp(argv[i], "rm") == 0)
+		{
+			while (i + 1 < argc && (argv[i + 1][0] == '/' || argv[i + 1][1] == '/'))
+			{
+				if (src_path.size())
+					src_path += "\n";
+				src_path += argv[i + 1];
+				i += 1;
+			}
+			if (src_path.size() == 0)
+			{
+				std::cerr << "rm command requres path\n";
+				return 1;
+			}
+			tool_action = RM_ACTION;
+		}
+		else if (strcmp(argv[i], "mkdir") == 0)
+		{
+			while (i + 1 < argc && (argv[i + 1][0] == '/' || argv[i + 1][1] == '/'))
+			{
+				if (src_path.size())
+					src_path += "\n";
+				src_path += argv[i + 1];
+				i += 1;
+			}
+			if (src_path.size() == 0)
+			{
+				std::cerr << "mkdir command requres path\n";
+				return 1;
+			}
+			tool_action = MKDIR_ACTION;
+		}
 		else
 		{
 			printHelp();
 			return 1;
 		}
 	}
-	if (access_token.size() == 0)
+	if (verbose)
+		std::cout << curl_version() << "\n";
+	
+	if (access_token.size() == 0 && argc > 2)//Ask for a token only if there is an action
 	{
 		std::cout << "Input acces token\n";
 		std::getline(std::cin, access_token);
@@ -156,14 +193,12 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 	}
-	if (verbose)
-		std::cout << curl_version() << "\n";
-	
+
 	curl_global_init(CURL_GLOBAL_ALL);
 	switch(tool_action)
 	{
 	case PUT_ACTION:
-		if ((fi = fopen(src_path, "rb")) == 0)
+		if ((fi = fopen(src_path.c_str(), "rb")) == 0)
 		{
 			std::cerr << strerror(errno) << " : " << src_path << std::endl;
 			return 1;
@@ -172,14 +207,14 @@ int main(int argc, char* argv[])
 		fclose(fi);
 		break;
 	case GET_ACTION:
-		if ((fi = fopen(dst_path, "rb")) != 0)
+		if ((fi = fopen(dst_path.c_str(), "rb")) != 0)
 		{
 			fclose(fi);
 			std::cout << "File: " << dst_path << "\nExists. override? y/n";
 			if (!promptYesNo())
 				return 0;
 		}
-		if ((fi = fopen(dst_path, "wb")) == 0)
+		if ((fi = fopen(dst_path.c_str(), "wb")) == 0)
 		{
 			std::cerr << strerror(errno) << " : " << dst_path << std::endl;
 			return 1;
@@ -189,6 +224,12 @@ int main(int argc, char* argv[])
 		break;
 	case LIST_ACTION:
 		res = list(access_token, src_path, verbose);
+		break;
+	case RM_ACTION:
+		res = remove(access_token, src_path, verbose);
+		break;
+	case MKDIR_ACTION:
+		res = mkdir(access_token, src_path, verbose);
 		break;
 	default:
 		std::cout << "No action\n";

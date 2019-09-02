@@ -52,18 +52,10 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 	if (verbose)
 		std::cout << curlBuffer << "\n\n";
 	json_d.Parse(curlBuffer.c_str());
-	if (json_d.IsObject())
+	if (json_d.IsObject() && json_d.HasMember("error"))
 	{
-		if (json_d.HasMember("error"))
-		{
-			curl_global_cleanup();
-			return CURLE_UPLOAD_FAILED;
-		}
-		else
-		{
-			session_id = json_d["session_id"].GetString();
-			std::cout << "\nsession_id: " << session_id << "\n";
-		}
+		curl_global_cleanup();
+		return CURLE_UPLOAD_FAILED;
 	}
 	curlBuffer.clear();
 	_doffset = readed_bytes;

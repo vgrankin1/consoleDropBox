@@ -166,7 +166,9 @@
     <ClCompile Include="..\src\invoke.cpp" />
     <ClCompile Include="..\src\list.cpp" />
     <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\mkdir.cpp" />
     <ClCompile Include="..\src\uppload.cpp" />
+    <ClCompile Include="..\src\remove.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\main.hpp" />

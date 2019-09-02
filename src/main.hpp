@@ -12,7 +12,7 @@
 
 enum tool_action_t
 {
-	NO_ACTION = 0, PUT_ACTION, GET_ACTION, LIST_ACTION
+	NO_ACTION = 0, PUT_ACTION, GET_ACTION, LIST_ACTION, RM_ACTION, MKDIR_ACTION
 };
 
 struct sha256_digest_t
@@ -44,5 +44,11 @@ CURLcode invokeUP(const char* endpoint, const curl_slist* headers, std::string& 
 
 CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* errorbuf, std::string& dropbox_api_result, FILE* fi, sha256_DB_hash_t* ptrhash, const bool verbose);
 
+CURLcode invokeList(const char* endpoint, const curl_slist* headers, const std::string& data, std::string& retBuffer, char* errorbuf, const bool verbose);
+
+
 CURLcode upload(FILE* fi, const std::string& access_token, const std::string& file_name_url, const bool verbose);
 CURLcode download(FILE* fi, const std::string& access_token, const std::string& file_name_url, const bool verbose);
+CURLcode list(const std::string& access_token, const std::string& remote_url, const bool verbose);
+CURLcode remove(const std::string& access_token, const std::string& remote_urls, const bool verbose);
+CURLcode mkdir(const std::string& access_token, const std::string& remote_urls, const bool verbose);

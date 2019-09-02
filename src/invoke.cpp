@@ -129,7 +129,7 @@ CURLcode invokeDOWN(const char* endpoint, const curl_slist* headers, char* error
 	curl_easy_cleanup(curl);
 
 	fflush(fi);
-	buffer_hash.release();//Called for last block
+	buffer_hash.release();//Called for last block to push last chunk of data and calc last hash
 
 	std::string dbstring = "dropbox-api-result:";
 	size_t dbpos;
