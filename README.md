@@ -5,17 +5,26 @@ Some simple console app for DropBox
 ## usage:
 
 ### upload file
-tool.exe put src_path dst_path  
+  tool.exe put src_path dst_path  
 where src_path is a local file  
 
 ### download file
-tool.exe get src_path dst_path  
+  tool.exe get src_path dst_path  
 where src_path is a remote file  
 
 ### list for files
-tool.exe ls url
+  tool.exe ls url  
 where url is required
 
+## remove files
+  tool.exe rm url1 url2 ...  
+where url is required  
+
+## folder creation
+  tool.exe mkdir url1 url2 ...  
+where url is required  
+
+### Other options
 -h help message  
 -v verbose  
 -a token  
