@@ -52,11 +52,12 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 	if (verbose)
 		std::cout << curlBuffer << "\n\n";
 	json_d.Parse(curlBuffer.c_str());
-	if (json_d.IsObject() && json_d.HasMember("error"))
+	if (json_d.IsObject() && json_d.HasMember("error") && !json_d.HasMember("session_id"))
 	{
 		curl_global_cleanup();
 		return CURLE_UPLOAD_FAILED;
 	}
+	session_id = json_d["session_id"].GetString();
 	curlBuffer.clear();
 	_doffset = readed_bytes;
 
@@ -111,36 +112,27 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 	if (res != CURLE_OK)
 	{
 		std::cerr << "\n\ncurl_easy_perform() failed: " << curl_easy_strerror(res) << "\n" << curlErrorBuffer;
-		curl_global_cleanup();
 		return res;
 	}
 	if (verbose)
 		std::cout << curlBuffer << "\n\n";
 	json_d = rapidjson::Document();
 	json_d.Parse(curlBuffer.c_str());
-	if (!json_d.IsObject())
+	if (!json_d.IsObject() || json_d.HasMember("error"))
 	{
-		curl_global_cleanup();
+		std::cerr << "Some problem when uppload: " << curlBuffer << "\n\n";
 		return CURLE_UPLOAD_FAILED;
 	}
-	if (json_d.HasMember("error"))
+	std::string sid = json_d["id"].GetString();
+	std::string content_hash = json_d["content_hash"].GetString();
+	std::string local_hash = hash.get();
+	
+	if (local_hash.compare(content_hash) == 0)
 	{
-
+		if (verbose)
+			std::cout << "Local and remote hashes are identical\n";
 	}
 	else
-	{
-		std::string sid = json_d["id"].GetString();
-		std::string content_hash = json_d["content_hash"].GetString();
-		std::string local_hash = hash.get();
-		
-		if (local_hash.compare(content_hash) == 0)
-		{
-			if (verbose)
-				std::cout << "Local and remote hashes are identical\n";
-		}
-		else
-			std::cout << "[Warning!!!]\nLocal and remote hashes are not identical!!!\n";
-	}
-	curlBuffer.clear();
+		std::cout << "[Warning!!!]\nLocal and remote hashes are not identical!!!\n";
 	return res;
 }

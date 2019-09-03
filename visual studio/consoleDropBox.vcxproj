@@ -167,8 +167,10 @@
     <ClCompile Include="..\src\list.cpp" />
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\mkdir.cpp" />
+    <ClCompile Include="..\src\move_cp.cpp" />
     <ClCompile Include="..\src\uppload.cpp" />
     <ClCompile Include="..\src\remove.cpp" />
+    <ClCompile Include="..\src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\main.hpp" />

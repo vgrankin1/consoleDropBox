@@ -12,7 +12,7 @@
 
 enum tool_action_t
 {
-	NO_ACTION = 0, PUT_ACTION, GET_ACTION, LIST_ACTION, RM_ACTION, MKDIR_ACTION
+	NO_ACTION = 0, PUT_ACTION, GET_ACTION, LIST_ACTION, RM_ACTION, MKDIR_ACTION, MV_ACTION, CP_ACTION
 };
 
 struct sha256_digest_t
@@ -50,5 +50,10 @@ CURLcode invokeList(const char* endpoint, const curl_slist* headers, const std::
 CURLcode upload(FILE* fi, const std::string& access_token, const std::string& file_name_url, const bool verbose);
 CURLcode download(FILE* fi, const std::string& access_token, const std::string& file_name_url, const bool verbose);
 CURLcode list(const std::string& access_token, const std::string& remote_url, const bool verbose);
-CURLcode remove(const std::string& access_token, const std::string& remote_urls, const bool verbose);
-CURLcode mkdir(const std::string& access_token, const std::string& remote_urls, const bool verbose);
+CURLcode remove(const std::string& access_token, const std::vector<std::string>& remote_urls, const bool verbose);
+CURLcode mkdir(const std::string& access_token, const std::vector<std::string>& remote_urls, const bool verbose);
+CURLcode mv(const std::string& access_token, const std::vector<std::string>& remote_urls, const bool verbose);
+CURLcode cp(const std::string& access_token, const std::vector<std::string>& remote_urls, const bool verbose);
+
+//utils.cpp
+std::string fileNameFromFull(const std::string& full);

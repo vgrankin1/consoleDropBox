@@ -5,11 +5,12 @@ Some simple console app for DropBox
 ## usage:
 
 ### upload file
-  tool.exe put src_path dst_path  
-where src_path is a local file  
+  tool.exe put src dst  
+  tool.exe put D:\file_to.upload /remote_folder/file_that_will_be_upploaded  
+
 
 ### download file
-  tool.exe get src_path dst_path  
+  tool.exe get src dst 
 where src_path is a remote file  
 
 ### list for files

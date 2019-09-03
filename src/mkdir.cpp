@@ -8,8 +8,8 @@
 #include <rapidjson/document.h>
 
 
-//remote_urls urls divided by lines
-CURLcode mkdir(const std::string& access_token, const std::string& remote_urls, const bool verbose)
+
+CURLcode mkdir(const std::string& access_token, const std::vector<std::string> &remote_urls, const bool verbose)
 {
 	char curlErrorBuffer[CURL_ERROR_SIZE];
 
@@ -23,7 +23,7 @@ CURLcode mkdir(const std::string& access_token, const std::string& remote_urls, 
 	headers = curl_slist_append(headers, "Content-Type: application/json");
 
 	std::string data = "{\"paths\": [";
-	for (std::string s = remote_urls; ; )
+	/*for (std::string s = remote_urls; ; )
 	{
 		size_t b = s.rfind('\n');
 		if (b == std::string::npos)
@@ -34,7 +34,10 @@ CURLcode mkdir(const std::string& access_token, const std::string& remote_urls, 
 		}
 		data += "\"" + s.substr(b + 1, std::string::npos) + "\",";
 		s.erase(b, std::string::npos);
-	}
+	}*/
+	for(int i = 0; i < remote_urls.size(); i++)
+		data += "\"" + remote_urls[i] + "\",";
+	data.pop_back();
 	data += "],\"autorename\": false,\"force_async\": false}";
 	std::cout << data;
 	res = invokeList("https://api.dropboxapi.com/2/files/create_folder_batch", headers, data, curlBuffer, curlErrorBuffer, verbose);

@@ -20,7 +20,6 @@ CURLcode download(FILE* fi, const std::string& access_token, const std::string& 
 	rapidjson::Document json_d;
 	CURLcode res;
 
-	
 	struct curl_slist* headers = NULL;
 	headers = curl_slist_append(headers, (std::string("Authorization: Bearer ") + access_token).c_str());
 	headers = curl_slist_append(headers, (std::string("Dropbox-API-Arg: {\"path\": \"") + file_name_url + "\"}").c_str());
@@ -32,30 +31,22 @@ CURLcode download(FILE* fi, const std::string& access_token, const std::string& 
 		std::cerr << "\n\ncurl_easy_perform() failed: " << curl_easy_strerror(res) << "\n" << curlErrorBuffer;
 
 	json_d.Parse(dropbox_api_result.c_str());
-	if (!json_d.IsObject())
+	if (!json_d.IsObject() || json_d.HasMember("error"))
 	{
-		if (verbose)
-			std::cout << "\ninvokeDOWN: curl returned no json object\n";
+		std::cerr << "\n" << dropbox_api_result << "\n";
 		return res;
 	}
-	if (json_d.HasMember("error"))
+	
+	std::string sid = json_d["id"].GetString();
+	std::string content_hash = json_d["content_hash"].GetString();
+	std::string local_hash = hash.get();
+	if (local_hash.compare(content_hash) == 0)
 	{
-		std::cout << "\n" << dropbox_api_result << "\n";
+		if (verbose)
+			std::cout << "Local and remote hashes are identical\n";
 	}
 	else
-	{
-		std::string sid = json_d["id"].GetString();
-		std::string content_hash = json_d["content_hash"].GetString();
-		std::string local_hash = hash.get();
-
-		if (local_hash.compare(content_hash) == 0)
-		{
-			if (verbose)
-				std::cout << "Local and remote hashes are identical\n";
-		}
-		else
-			std::cout << "[Warning!!!]\nLocal and remote hashes are not identical!!!\n";
-	}
+		std::cout << "[Warning!!!]\nLocal and remote hashes are not identical!!!\n";
 	return res;
 }
 

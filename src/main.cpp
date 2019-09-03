@@ -6,6 +6,7 @@
 
 #include <ctime>
 #include <string>
+#include <vector>
 #include <fstream>
 
 #include <curl/curl.h>
@@ -17,14 +18,17 @@
 
 int verbose = false;
 
-void printHelp()
+void printHelp(const std::string &app_name)
 {
 	std::cout << "Wrong arguments! Usage:\n";
-	std::cout << "tool.exe put src_path dst_path" << "\t\twhere src_path is a local file" << std::endl;
-	std::cout << "tool.exe get src_path dst_path" << "\t\twhere src_path is a remote file" << std::endl;
-	std::cout << "tool.exe ls url" << "\t\t where url is required (tool.exe ls \"\")" << std::endl;
-	std::cout << "tool.exe rm url1 url2 ..." << "\t\t where url is required" << std::endl;
-	std::cout << "tool.exe mkdir url1 url2 ..." << "\t\t where url is required" << std::endl;
+	std::cout << app_name + " put src dest" << "\t\twhere src is a local file" << std::endl;
+	std::cout << app_name + " get src dest" << "\t\twhere src is a remote file" << std::endl;
+	std::cout << app_name + " ls url" << "\t\t where url is required (" + app_name + " ls \"\")" << std::endl;
+	std::cout << app_name + " rm url1 url2 ..." << "\t\t where url is required" << std::endl;
+	std::cout << app_name + " mkdir url1 url2 ..." << "\t\t where url is required" << std::endl;
+	std::cout << app_name + " mv url1 url2 ... dest" << "\t\t where url is required" << std::endl;
+	std::cout << app_name + " cp url1 url2 ... dest" << "\t\t where url is required" << std::endl;
+
 	std::cout << "\nPossible arguments:\n";
 	std::cout << "  -h \t this message" << std::endl;
 	std::cout << "  -v \t verbose" << std::endl;
@@ -58,7 +62,8 @@ int main(int argc, char* argv[])
 {
 	CURLcode res = CURLE_OK;
 	FILE* fi;
-	std::string src_path, dst_path;
+	std::string app_name = fileNameFromFull(std::string(argv[0]));
+	std::vector<std::string> src_path, dst_path;
 	std::string access_token = "";
 
 	tool_action_t tool_action = NO_ACTION;
@@ -67,7 +72,7 @@ int main(int argc, char* argv[])
 	{
 		if (strcmp(argv[i], "-h") == 0)
 		{
-			printHelp();
+			printHelp(app_name);
 			return 0;
 		}else if (strcmp(argv[i], "-v") == 0)
 			verbose = true;
@@ -114,8 +119,8 @@ int main(int argc, char* argv[])
 				std::cerr << "Wrong arguments for put command\n";
 				return 1;
 			}
-			src_path = argv[i + 1];
-			dst_path = argv[i + 2];
+			src_path.push_back(argv[i + 1]);
+			dst_path.push_back(argv[i + 2]);
 			tool_action = PUT_ACTION;
 			i += 2;
 		}
@@ -126,31 +131,23 @@ int main(int argc, char* argv[])
 				std::cerr << "Wrong arguments for get command\n";
 				return 1;
 			}
-			src_path = argv[i + 1];
-			dst_path = argv[i + 2];
+			src_path.push_back(argv[i + 1]);
+			dst_path.push_back(argv[i + 2]);
 			tool_action = GET_ACTION;
 			i += 2;
 		}
 		else if (strcmp(argv[i], "ls") == 0)
 		{
-			if (i + 1 >= argc)
-			{
-				std::cerr << "Wrong arguments for list command\n";
-				return 1;
-			}
-			src_path = argv[i + 1];
+			if (i + 1 >= argc || argv[i + 1][0] == '-')
+				src_path.push_back("");
+			else
+				src_path.push_back(argv[++i]);
 			tool_action = LIST_ACTION;
-			i += 1;
 		}
 		else if (strcmp(argv[i], "rm") == 0)
 		{
 			while (i + 1 < argc && (argv[i + 1][0] == '/' || argv[i + 1][1] == '/'))
-			{
-				if (src_path.size())
-					src_path += "\n";
-				src_path += argv[i + 1];
-				i += 1;
-			}
+				src_path.push_back(argv[++i]);
 			if (src_path.size() == 0)
 			{
 				std::cerr << "rm command requres path\n";
@@ -160,13 +157,8 @@ int main(int argc, char* argv[])
 		}
 		else if (strcmp(argv[i], "mkdir") == 0)
 		{
-			while (i + 1 < argc && (argv[i + 1][0] == '/' || argv[i + 1][1] == '/'))
-			{
-				if (src_path.size())
-					src_path += "\n";
-				src_path += argv[i + 1];
-				i += 1;
-			}
+			while (i + 1 < argc && (argv[i + 1][0] != '-'))//(argv[i + 1][0] == '/' || argv[i + 1][1] == '/'))
+				src_path.push_back(argv[++i]);
 			if (src_path.size() == 0)
 			{
 				std::cerr << "mkdir command requres path\n";
@@ -174,9 +166,31 @@ int main(int argc, char* argv[])
 			}
 			tool_action = MKDIR_ACTION;
 		}
+		else if (strcmp(argv[i], "mv") == 0)
+		{
+			while (i + 1 < argc && (argv[i + 1][0] != '-'))
+				src_path.push_back(argv[++i]);
+			if (src_path.size() == 0)
+			{
+				std::cerr << "mv command requres files\n";
+				return 1;
+			}
+			tool_action = MV_ACTION;
+		}
+		else if (strcmp(argv[i], "cp") == 0)
+		{
+			while (i + 1 < argc && (argv[i + 1][0] != '-'))
+				src_path.push_back(argv[++i]);
+			if (src_path.size() == 0)
+			{
+				std::cerr << "cp command requres path\n";
+				return 1;
+			}
+			tool_action = CP_ACTION;
+		}
 		else
 		{
-			printHelp();
+			printHelp(app_name);
 			return 1;
 		}
 	}
@@ -198,32 +212,32 @@ int main(int argc, char* argv[])
 	switch(tool_action)
 	{
 	case PUT_ACTION:
-		if ((fi = fopen(src_path.c_str(), "rb")) == 0)
+		if ((fi = fopen(src_path[0].c_str(), "rb")) == 0)
 		{
-			std::cerr << strerror(errno) << " : " << src_path << std::endl;
+			std::cerr << strerror(errno) << " : " << src_path[0] << std::endl;
 			return 1;
 		}
-		res = upload(fi, access_token, dst_path, verbose);
+		res = upload(fi, access_token, dst_path[0], verbose);
 		fclose(fi);
 		break;
 	case GET_ACTION:
-		if ((fi = fopen(dst_path.c_str(), "rb")) != 0)
+		if ((fi = fopen(dst_path[0].c_str(), "rb")) != 0)
 		{
 			fclose(fi);
-			std::cout << "File: " << dst_path << "\nExists. override? y/n";
+			std::cout << "File: " << dst_path[0] << "\nExists. override? y/n";
 			if (!promptYesNo())
 				return 0;
 		}
-		if ((fi = fopen(dst_path.c_str(), "wb")) == 0)
+		if ((fi = fopen(dst_path[0].c_str(), "wb")) == 0)
 		{
-			std::cerr << strerror(errno) << " : " << dst_path << std::endl;
+			std::cerr << strerror(errno) << " : " << dst_path[0] << std::endl;
 			return 1;
 		}
-		res = download(fi, access_token, src_path, verbose);
+		res = download(fi, access_token, src_path[0], verbose);
 		fclose(fi);
 		break;
 	case LIST_ACTION:
-		res = list(access_token, src_path, verbose);
+		res = list(access_token, src_path[0], verbose);
 		break;
 	case RM_ACTION:
 		res = remove(access_token, src_path, verbose);
@@ -231,9 +245,15 @@ int main(int argc, char* argv[])
 	case MKDIR_ACTION:
 		res = mkdir(access_token, src_path, verbose);
 		break;
+	case MV_ACTION:
+		res = mv(access_token, src_path, verbose);
+		break;
+	case CP_ACTION:
+		res = cp(access_token, src_path, verbose);
+		break;
 	default:
 		std::cout << "No action\n";
-		printHelp();
+		printHelp(app_name);
 		break;
 	}
 	curl_global_cleanup();

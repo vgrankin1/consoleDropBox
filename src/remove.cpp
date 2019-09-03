@@ -7,8 +7,8 @@
 #include <rapidjson/document.h>
 
 
-//remote_urls urls divided by lines
-CURLcode remove(const std::string& access_token, const std::string& remote_urls, const bool verbose)
+
+CURLcode remove(const std::string& access_token, const std::vector<std::string> &remote_urls, const bool verbose)
 {
 	char curlErrorBuffer[CURL_ERROR_SIZE];
 
@@ -22,7 +22,7 @@ CURLcode remove(const std::string& access_token, const std::string& remote_urls,
 	headers = curl_slist_append(headers, "Content-Type: application/json");
 
 	std::string data = "{\"entries\": [";
-	for (std::string s = remote_urls; ; )
+	/*for (std::string s = remote_urls; ; )
 	{
 		size_t b = s.rfind('\n');
 		if (b == std::string::npos)
@@ -33,7 +33,12 @@ CURLcode remove(const std::string& access_token, const std::string& remote_urls,
 		}
 		data += "{\"path\": \"" + s.substr(b + 1, std::string::npos) + "\"},";
 		s.erase(b, std::string::npos);
+	}*/
+	for (int i = 0; i < remote_urls.size(); i++)
+	{
+		data += "{\"path\": \"" + remote_urls[i] + "\"},";
 	}
+	data.pop_back();
 	data += "]}";
 
 	res = invokeList("https://api.dropboxapi.com/2/files/delete_batch", headers, data, curlBuffer, curlErrorBuffer, verbose);

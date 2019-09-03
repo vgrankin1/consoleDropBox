@@ -6,7 +6,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-k 1.key mkdir "/5 Miles.mp3" "/6 Miles.mp3" -v</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-k 1.key put "D:\Музика\Саранча - Эй, негатив!.mp3" /sarancha2.mp3 -v</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>
