@@ -188,6 +188,10 @@ int main(int argc, char* argv[])
 			}
 			tool_action = CP_ACTION;
 		}
+		else if (strcmp(argv[i], "df") == 0)
+		{
+			tool_action = DF_ACTION;
+		}
 		else
 		{
 			printHelp(app_name);
@@ -240,7 +244,7 @@ int main(int argc, char* argv[])
 		res = list(access_token, src_path[0], verbose);
 		break;
 	case RM_ACTION:
-		res = remove(access_token, src_path, verbose);
+		res = rm(access_token, src_path, verbose);
 		break;
 	case MKDIR_ACTION:
 		res = mkdir(access_token, src_path, verbose);
@@ -250,6 +254,9 @@ int main(int argc, char* argv[])
 		break;
 	case CP_ACTION:
 		res = cp(access_token, src_path, verbose);
+		break;
+	case DF_ACTION:
+		res = df(access_token, verbose);
 		break;
 	default:
 		std::cout << "No action\n";

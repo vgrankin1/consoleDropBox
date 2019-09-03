@@ -161,15 +161,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\df.cpp" />
     <ClCompile Include="..\src\download.cpp" />
     <ClCompile Include="..\src\hash.cpp" />
     <ClCompile Include="..\src\invoke.cpp" />
     <ClCompile Include="..\src\list.cpp" />
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\mkdir.cpp" />
+    <ClCompile Include="..\src\mkdir_rm.cpp" />
     <ClCompile Include="..\src\move_cp.cpp" />
     <ClCompile Include="..\src\uppload.cpp" />
-    <ClCompile Include="..\src\remove.cpp" />
     <ClCompile Include="..\src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>

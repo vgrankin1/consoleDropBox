@@ -14,11 +14,11 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 {
 	char curlErrorBuffer[CURL_ERROR_SIZE];
 	std::string session_id;
-	std::string curlBuffer;
+	std::string dropbox_api_result;
 	size_t _doffset = 0;
 	rapidjson::Document json_d;
 	CURLcode res;
-
+	const char* UPLOAD_FAILEDs = "\nUPLOAD FAILED: ";
 	sha256_DB_hash_t hash;
 
 	curl_off_t buffer_size = 128 * 1024 * 1024;
@@ -42,7 +42,7 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 	headers = curl_slist_append(headers, "Dropbox-API-Arg: {\"close\": false}");
 	headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
 
-	res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/start", headers, curlBuffer, curlErrorBuffer, buffer.get(), readed_bytes, verbose);
+	res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/start", headers, dropbox_api_result, curlErrorBuffer, buffer.get(), readed_bytes, verbose);
 	curl_slist_free_all(headers);
 	if (res != CURLE_OK)
 	{
@@ -50,18 +50,17 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 		return res;
 	}
 	if (verbose)
-		std::cout << curlBuffer << "\n\n";
-	json_d.Parse(curlBuffer.c_str());
+		std::cout << dropbox_api_result << "\n\n";
+	json_d.Parse(dropbox_api_result.c_str());
 	if (json_d.IsObject() && json_d.HasMember("error") && !json_d.HasMember("session_id"))
 	{
 		curl_global_cleanup();
 		return CURLE_UPLOAD_FAILED;
 	}
 	session_id = json_d["session_id"].GetString();
-	curlBuffer.clear();
+	dropbox_api_result.clear();
 	_doffset = readed_bytes;
 
-	
 	for (; _doffset + buffer_size < fi_size;)
 	{
 		if ((readed_bytes = fread(buffer.get(), 1, buffer_size, fi)) == 0)
@@ -74,24 +73,23 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 			"\",\"offset\": " + std::to_string(_doffset) + "},\"close\":false}").c_str());
 		headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
 
-		res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/append_v2", headers, curlBuffer, curlErrorBuffer, buffer.get(), readed_bytes, verbose);
+		res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/append_v2", headers, dropbox_api_result, curlErrorBuffer, buffer.get(), readed_bytes, verbose);
 		curl_slist_free_all(headers);
 		if (res != CURLE_OK)
 		{
-			std::cerr << "\n\ncurl_easy_perform() failed: " << curl_easy_strerror(res) << "\n" << curlErrorBuffer;
-			curl_global_cleanup();
+			std::cerr << UPLOAD_FAILEDs << "\ncurl_easy_perform() failed: " << curl_easy_strerror(res) << "\n" << curlErrorBuffer;
 			return res;
 		}
 		if (verbose)
-			std::cout << curlBuffer << "\n\n";
+			std::cout << dropbox_api_result << "\n\n";
 		json_d = rapidjson::Document();
-		json_d.Parse(curlBuffer.c_str());
+		json_d.Parse(dropbox_api_result.c_str());
 		if (json_d.IsObject())
 		{
-			curl_global_cleanup();
+			std::cerr << UPLOAD_FAILEDs << dropbox_api_result << std::endl;
 			return CURLE_UPLOAD_FAILED;
 		}
-		curlBuffer.clear();
+		dropbox_api_result.clear();
 		_doffset += readed_bytes;
 	}
 	
@@ -107,20 +105,20 @@ CURLcode upload(FILE *fi, const std::string &access_token, const std::string& fi
 		"\"mode\": \"add\",\"autorename\": true,\"mute\": false,\"strict_conflict\": false}}").c_str());
 	headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
 
-	res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/finish", headers, curlBuffer, curlErrorBuffer, buffer.get(), readed_bytes, verbose);
+	res = invokeUP("https://content.dropboxapi.com/2/files/upload_session/finish", headers, dropbox_api_result, curlErrorBuffer, buffer.get(), readed_bytes, verbose);
 	curl_slist_free_all(headers);
 	if (res != CURLE_OK)
 	{
-		std::cerr << "\n\ncurl_easy_perform() failed: " << curl_easy_strerror(res) << "\n" << curlErrorBuffer;
+		std::cerr << UPLOAD_FAILEDs << "\ncurl_easy_perform() failed: " << curl_easy_strerror(res) << "\n" << curlErrorBuffer;
 		return res;
 	}
 	if (verbose)
-		std::cout << curlBuffer << "\n\n";
+		std::cout << dropbox_api_result << "\n\n";
 	json_d = rapidjson::Document();
-	json_d.Parse(curlBuffer.c_str());
+	json_d.Parse(dropbox_api_result.c_str());
 	if (!json_d.IsObject() || json_d.HasMember("error"))
 	{
-		std::cerr << "Some problem when uppload: " << curlBuffer << "\n\n";
+		std::cerr << UPLOAD_FAILEDs << dropbox_api_result << "\n\n";
 		return CURLE_UPLOAD_FAILED;
 	}
 	std::string sid = json_d["id"].GetString();

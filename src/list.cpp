@@ -27,9 +27,7 @@ struct file_info_t
 CURLcode list(const std::string& access_token, const std::string& remote_url, const bool verbose)
 {
 	char curlErrorBuffer[CURL_ERROR_SIZE];
-	
-	std::string curlBuffer;
-
+	std::string dropbox_api_result;
 	rapidjson::Document json_d;
 	CURLcode res;
 
@@ -46,7 +44,7 @@ CURLcode list(const std::string& access_token, const std::string& remote_url, co
 		"\"include_mounted_folders\" : true,"
 		"\"include_non_downloadable_files\" : true}";
 
-	res = invokeList("https://api.dropboxapi.com/2/files/list_folder", headers, data, curlBuffer, curlErrorBuffer, verbose);
+	res = invokeList("https://api.dropboxapi.com/2/files/list_folder", headers, data, dropbox_api_result, curlErrorBuffer, verbose);
 	curl_slist_free_all(headers);
 	if (res != CURLE_OK)
 	{
@@ -54,14 +52,14 @@ CURLcode list(const std::string& access_token, const std::string& remote_url, co
 		return res;
 	}
 	if (verbose)
-		std::cout << curlBuffer << "\n\n";
-	json_d.Parse(curlBuffer.c_str());
+		std::cout << dropbox_api_result << "\n\n";
+	json_d.Parse(dropbox_api_result.c_str());
 	if (!json_d.IsObject() || json_d.HasMember("error"))
 	{
-		std::cerr << curlBuffer << "\n\n";
+		std::cerr << dropbox_api_result << "\n\n";
 		return CURLE_GOT_NOTHING;
 	}
-	curlBuffer.clear();
+	dropbox_api_result.clear();
 
 	const rapidjson::Value &entries = json_d["entries"];
 	std::string cursor = json_d["cursor"].GetString();
